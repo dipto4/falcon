@@ -68,7 +68,7 @@ void read_stars_from_file(const char* filename, double **pos, double **vel, doub
     input = fopen(filename, "r");
     size_t line_count = 0;
     
-    double* params;
+    double params[7];
 
     while ((read = getline(&line, &len, input)) != -1) {
         char *l = line;
@@ -76,8 +76,9 @@ void read_stars_from_file(const char* filename, double **pos, double **vel, doub
         
         size_t param_count = 0;
         
-        while ((token = strsep(&l, "\t")) != NULL) {
+        while ((token = strsep(&l, " ")) != NULL) {
             params[param_count] = atof(token);
+            param_count++;
         }
 
         mass[line_count] = params[0];

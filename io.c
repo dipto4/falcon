@@ -4,6 +4,7 @@
 #include<math.h>
 #include<assert.h>
 #include<string.h>
+#include "hdf5.h"
 #include "globals.h"
 #include "io.h"
 
@@ -58,7 +59,7 @@ size_t get_N_from_file(const char* filename) {
 }
 
 
-void read_stars_from_file(const char* filename, double **pos, double **vel, double *mass, size_t N) {
+void read_inputs_from_file(const char* filename, double **pos, double **vel, double *mass, size_t N) {
     FILE *input;
 
     char *line = NULL;
@@ -95,4 +96,127 @@ void read_stars_from_file(const char* filename, double **pos, double **vel, doub
 
     fclose(input);
 
-} 
+}
+
+// Used from Taichi io.h with appropriate modifications
+
+void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double **vel, double **acc, double **jerk, 
+        size_t N, double t) {
+    hsize_t dims[1] = { N };
+    herr_t status;   hid_t file_id, space_id, dset_id, memspace, handle = 0;
+    hid_t file_id, space_id, dset_id, memspace, handle = 0;
+    char buf[500];
+    sprintf(buf, "output_%d.hdf5", snapshot_num);
+
+    double *data = (double *) malloc(N*sizeof(double));
+    double pot[NMAX];
+    
+    file_id = H5Fcreate(buf, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    // first write the header information
+    handle = H5Gcreate(file_id, "/info", 0);
+
+    hid_t hdf5_dataspace, hdf5_attribute;
+
+    printf("Writing %d particles at t=%g \n", N, t);
+    fflush(stdout);
+
+    hdf5_dataspace = H5Screate(H5S_SCALAR);
+    hdf5_attribute = H5Acreate(handle, "Time", H5T_NATIVE_DOUBLE, hdf5_dataspace, H5P_DEFAULT);
+    H5Awrite(hdf5_attribute, H5T_NATIVE_DOUBLE, &t);
+    H5Aclose(hdf5_attribute);
+    H5Sclose(hdf5_dataspace);
+    //Header writing done 
+
+ 
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
+    for(unsigned int b = 0; b < s.n; b++)
+      data[b] = pos[b][0];
+    dset_id = H5Dcreate(file_id, "Posx", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
+    for(unsigned int b = 0; b < s.n; b++)
+      data[b] = pos[b][1];
+    dset_id = H5Dcreate(file_id, "Posy", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
+    for(unsigned int b = 0; b < s.n; b++)
+      data[b] = pos[b][2];
+    dset_id = H5Dcreate(file_id, "Posz", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
+    for(unsigned int b = 0; b < s.n; b++)
+      data[b] = vel[b][0];
+    dset_id = H5Dcreate(file_id, "Velx", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
+    for(unsigned int b = 0; b < s.n; b++)
+      data[b] = vel[b][1];
+    dset_id = H5Dcreate(file_id, "Vely", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
+    for(unsigned int b = 0; b < s.n; b++)
+      data[b] = vel[b][2];
+    dset_id = H5Dcreate(file_id, "Velz", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
+    for(unsigned int b = 0; b < s.n; b++)
+      data[b] = mass[b];
+    dset_id = H5Dcreate(file_id, "Mass", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+
+
+    // output the potentials
+    calculate_potential(pos,mass,pot);
+    
+    for(unsigned int b = 0; b < s.n; b++)
+        data[b] = pot[b];
+    dset_id = H5Dcreate(file_id, "Potential", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
+    status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
+    status = H5Sclose(space_id);
+    status = H5Sclose(memspace);
+    status = H5Dclose(dset_id);
+    
+    free(data);
+    
+    // close the file
+    status = H5Gclose(handle);
+    status = H5Fclose(file_id);
+    if(status < 0)
+        printf("Writing snapshot error\n");
+
+}

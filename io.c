@@ -7,10 +7,11 @@
 #include "hdf5.h"
 #include "globals.h"
 #include "io.h"
+#include "force.h"
 // testing purposes
 // remove later
 
-
+/*
 void calculate_potential(double **pos, double *mass, size_t N, double pot[NMAX]) {
     size_t i,j;
 
@@ -31,7 +32,7 @@ void calculate_potential(double **pos, double *mass, size_t N, double pot[NMAX])
         }
     }
 }
-
+*/
 
 
 
@@ -241,15 +242,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
     status = H5Sclose(space_id);
     status = H5Sclose(memspace);
     status = H5Dclose(dset_id);
-
-
-
-    //TODO: output jerk and acceleration
-
-
-
-
-
+    
     free(data);
     // close the file
     status = H5Gclose(handle);

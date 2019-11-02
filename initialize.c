@@ -1,10 +1,67 @@
 #include<math.h>
 #include "globals.h"
 #include "force.h"
-
+#include "io.h"
 
 // TODO: Add scaling at some point to get energy scaling
-//void scale(double **pos, double **vel, )
+// Input is in arbitrary code units that get transformed to N-Body units
+
+void scale(double **pos, double **vel, double *mass, size_t N,
+        double* mass_scale, double *pos_scale, double *vel_scale) {
+    // mass scaling
+    // scaling: total mass = 1
+    
+    double initial_total_mass = 0;
+    double kinetic_total, potential_total;
+    double Q_v;
+    double beta;
+
+
+    size_t i = 0;
+    for(i = 0; i<N;i++) {
+        initial_total_mass+=mass[i];
+    }
+
+    for(i = 0; i<N;i++) {
+        mass = mass[i]/initial_total_mass;
+    }
+    
+    *mass_scale = initial_total_mass;
+
+    // scaling of masses complete
+    
+
+    //scaling of energy, position and velocites
+
+    kinetic_total = get_kinetic_energy(vel, mass, N);   
+    potential_total = get_potential_energy(pos, mass, N);
+
+    potential_total = fabs(potential_total);
+    
+    Q_v = sqrt(QVIR*potential_total/kinetic_total);
+
+    for(i = 0; i < N; i++) {
+        vel[i][0] = vel[i][0] * Q_v;
+        vel[i][1] = vel[i][1] * Q_v;
+        vel[i][2] = vel[i][2] * Q_v;
+    }
+    //scaling total energy to -0.25
+    beta = -0.25/((QVIR-1.0)*potential_total);
+    
+    for(i = 0; i<N;i++) {
+        pos[i][0] = pos[i][0]/beta;
+        pos[i][1] = pos[i][1]/beta;
+        pos[i][2] = pos[i][2]/beta;
+
+        vel[i][0] = vel[i][0]*sqrt(beta);
+        vel[i][1] = vel[i][1]*sqrt(beta);
+        vel[i][2] = vel[i][2]*sqrt(beta);
+    }
+
+    *pos_scale = beta;
+    *vel_scale = 1./(sqrt(beta)*Q_v);
+
+}
 
 void move_to_com(double **pos, double **vel, double *mass, size_t N) {
     //calculate center of mass for the system

@@ -19,7 +19,7 @@
 // acc[i][1] = acc_i_y
 // acc[i][2] = acc_i_z
 
-void calculate_potential(double **pos, double *mass, size_t N, double *pot) {
+void calculate_potential(double **pos, double *mass, size_t N, double pot[NMAX]) {
     size_t i,j;
 
     for(i=0;i<N;i++) {
@@ -88,7 +88,7 @@ void calculate_acceleration_and_jerk(double **pos,double **vel, double *mass, si
 
 }
 
-void calculate_acceleration_and_jerk_single(double **pos,double **vel, double *mass, size_t N, ,
+void calculate_acceleration_and_jerk_single(double **pos,double **vel, double *mass, size_t N, 
         size_t req_i, double acc_i[3], double jerk_i[3]) {
 
     size_t i,j;
@@ -120,9 +120,9 @@ void calculate_acceleration_and_jerk_single(double **pos,double **vel, double *m
             double a = dx*dvx+dy*dvy+dz*dvz/dist2;
 
 
-            jerk_i[0] += -mass_over_dist3*dvx-3*a*acc[i][0];
-            jerk_i[1] += -mass_over_dist3*dvy-3*a*acc[i][1];
-            jerk_i[2] += -mass_over_dist3*dvz-3*a*acc[i][2];
+            jerk_i[0] += -mass_over_dist3*dvx-3*a*acc_i[0];
+            jerk_i[1] += -mass_over_dist3*dvy-3*a*acc_i[1];
+            jerk_i[2] += -mass_over_dist3*dvz-3*a*acc_i[2];
 
         } else {
             continue;

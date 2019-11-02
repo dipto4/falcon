@@ -7,6 +7,33 @@
 #include "hdf5.h"
 #include "globals.h"
 #include "io.h"
+// testing purposes
+// remove later
+
+
+void calculate_potential(double **pos, double *mass, size_t N, double pot[NMAX]) {
+    size_t i,j;
+
+    for(i=0;i<N;i++) {
+        for(j=0;j<N;j++) {
+            if(i != j) {
+                double dx = pos[i][0] - pos[j][0];
+                double dy = pos[i][1] - pos[j][1];
+                double dz = pos[i][2] - pos[j][2];
+
+                double dist = sqrt(dx*dx + dy*dy + dz*dz);
+                
+                pot[i] += mass[j] / dist;
+
+            } else {
+                continue;
+            }
+        }
+    }
+}
+
+
+
 
 double get_potential_energy(double **pos, double *mass, size_t N) {
     size_t i;
@@ -18,8 +45,8 @@ double get_potential_energy(double **pos, double *mass, size_t N) {
     for (i=0;i<N;i++) {
         potential_energy += mass[i] *pot[i];
     }
-    
-    return potential_energy;
+    // since we are double counting we divide the quantity found by 2
+    return 0.5*potential_energy;
 
 }
 
@@ -27,6 +54,8 @@ double get_kinetic_energy(double **vel, double *mass, size_t N) {
     size_t i;
     
     double kinetic_energy = 0;
+    double vel_sq;
+
     for(i=0;i<N;i++) {
 
         vel_sq = vel[i][0] * vel[i][0] + vel[i][1] * vel[i][1] + vel[i][2] * vel[i][2];
@@ -103,10 +132,10 @@ void read_inputs_from_file(const char* filename, double **pos, double **vel, dou
 void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double **vel, double **acc, double **jerk, 
         size_t N, double t) {
     hsize_t dims[1] = { N };
-    herr_t status;   hid_t file_id, space_id, dset_id, memspace, handle = 0;
+    herr_t status;   
     hid_t file_id, space_id, dset_id, memspace, handle = 0;
     char buf[500];
-    sprintf(buf, "output_%d.hdf5", snapshot_num);
+    sprintf(buf, "output_%d.hdf5", output_num);
 
     double *data = (double *) malloc(N*sizeof(double));
     double pot[NMAX];
@@ -131,7 +160,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
  
     memspace = H5Screate_simple(1, dims, NULL);
     space_id = H5Screate_simple(1, dims, NULL);
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
       data[b] = pos[b][0];
     dset_id = H5Dcreate(file_id, "Posx", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -141,7 +170,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
 
     memspace = H5Screate_simple(1, dims, NULL);
     space_id = H5Screate_simple(1, dims, NULL);
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
       data[b] = pos[b][1];
     dset_id = H5Dcreate(file_id, "Posy", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -151,7 +180,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
 
     memspace = H5Screate_simple(1, dims, NULL);
     space_id = H5Screate_simple(1, dims, NULL);
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
       data[b] = pos[b][2];
     dset_id = H5Dcreate(file_id, "Posz", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -161,7 +190,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
 
     memspace = H5Screate_simple(1, dims, NULL);
     space_id = H5Screate_simple(1, dims, NULL);
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
       data[b] = vel[b][0];
     dset_id = H5Dcreate(file_id, "Velx", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -171,7 +200,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
 
     memspace = H5Screate_simple(1, dims, NULL);
     space_id = H5Screate_simple(1, dims, NULL);
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
       data[b] = vel[b][1];
     dset_id = H5Dcreate(file_id, "Vely", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -181,7 +210,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
 
     memspace = H5Screate_simple(1, dims, NULL);
     space_id = H5Screate_simple(1, dims, NULL);
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
       data[b] = vel[b][2];
     dset_id = H5Dcreate(file_id, "Velz", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -191,7 +220,7 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
 
     memspace = H5Screate_simple(1, dims, NULL);
     space_id = H5Screate_simple(1, dims, NULL);
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
       data[b] = mass[b];
     dset_id = H5Dcreate(file_id, "Mass", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -201,9 +230,11 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
 
 
     // output the potentials
-    calculate_potential(pos,mass,pot);
+    calculate_potential(pos,mass,N,pot);
+    memspace = H5Screate_simple(1, dims, NULL);
+    space_id = H5Screate_simple(1, dims, NULL);
     
-    for(unsigned int b = 0; b < s.n; b++)
+    for(unsigned int b = 0; b < N; b++)
         data[b] = pot[b];
     dset_id = H5Dcreate(file_id, "Potential", H5T_NATIVE_DOUBLE, space_id, H5P_DEFAULT);
     status = H5Dwrite(dset_id, H5T_NATIVE_DOUBLE, memspace, space_id, H5P_DEFAULT, data);
@@ -212,7 +243,6 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
     status = H5Dclose(dset_id);
     
     free(data);
-    
     // close the file
     status = H5Gclose(handle);
     status = H5Fclose(file_id);

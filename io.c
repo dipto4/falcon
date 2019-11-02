@@ -241,7 +241,15 @@ void write_output_to_hdf5(size_t output_num, double *mass, double **pos, double 
     status = H5Sclose(space_id);
     status = H5Sclose(memspace);
     status = H5Dclose(dset_id);
-    
+
+
+
+    //TODO: output jerk and acceleration
+
+
+
+
+
     free(data);
     // close the file
     status = H5Gclose(handle);

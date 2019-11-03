@@ -46,10 +46,21 @@ void calculate_potential(double **pos, double *mass, size_t N, double pot[NMAX])
 }
 
 
-void calculate_acceleration_and_jerk(double **pos,double **vel, double *mass, size_t N, double **acc, double **jerk,
-        size_t req_i, double *acc_i, double *jerk_i) {
+void calculate_acceleration_and_jerk(double **pos,double **vel, double *mass, size_t N, double **acc, double **jerk) {
 
     size_t i,j;
+    
+    for(i = 0; i< N; i++) {
+        acc[i][0] = 0;
+        acc[i][1] = 0;
+        acc[i][2] = 0;
+
+        jerk[i][0] = 0;
+        jerk[i][1] = 0;
+        jerk[i][2] = 0;
+    }
+
+
 
     for(i = 0; i <N; i++) {
         for( j = 0; j < N; j++) {
@@ -88,8 +99,6 @@ void calculate_acceleration_and_jerk(double **pos,double **vel, double *mass, si
         }
 
     }
-    acc_i = acc[req_i];
-    jerk_i = jerk[req_i];
 
 }
 
@@ -98,6 +107,15 @@ void calculate_acceleration_and_jerk_single(double **pos,double **vel, double *m
 
     size_t i,j;
     i = req_i;
+    
+    acc_i[0] = 0;
+    acc_i[1] = 0;
+    acc_i[2] = 0;
+    
+    jerk_i[0] = 0;
+    jerk_i[1] = 0;
+    jerk_i[2] = 0;
+
 
     for( j = 0; j < N; j++) {
         if(i != j) {

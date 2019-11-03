@@ -7,7 +7,7 @@
 // Input is in arbitrary code units that get transformed to N-Body units
 
 void scale(double **pos, double **vel, double *mass, size_t N,
-        double* mass_scale, double *pos_scale, double *vel_scale) {
+        double* mass_scale, double *pos_scale, double *vel_scale, double *t_scale) {
     // mass scaling
     // scaling: total mass = 1
     
@@ -23,7 +23,7 @@ void scale(double **pos, double **vel, double *mass, size_t N,
     }
 
     for(i = 0; i<N;i++) {
-        mass = mass[i]/initial_total_mass;
+        mass[i] = mass[i]/initial_total_mass;
     }
     
     *mass_scale = initial_total_mass;
@@ -60,6 +60,7 @@ void scale(double **pos, double **vel, double *mass, size_t N,
 
     *pos_scale = beta;
     *vel_scale = 1./(sqrt(beta)*Q_v);
+    *t_scale = *pos_scale/ (*vel_scale);
 
 }
 
@@ -79,13 +80,13 @@ void move_to_com(double **pos, double **vel, double *mass, size_t N) {
     int i;
     
     for(i = 0; i < N; i++) {
-        pos_com[0] += mass[i]*pos[0];    
-        pos_com[1] += mass[i]*pos[1];    
-        pos_com[2] += mass[i]*pos[2];    
+        pos_com[0] += mass[i]*pos[i][0];    
+        pos_com[1] += mass[i]*pos[i][1];    
+        pos_com[2] += mass[i]*pos[i][2];    
         
-        vel_com[0] += mass[i]*pos[0];
-        vel_com[1] += mass[i]*pos[1];
-        vel_com[2] += mass[i]*pos[2];
+        vel_com[0] += mass[i]*vel[i][0];
+        vel_com[1] += mass[i]*vel[i][1];
+        vel_com[2] += mass[i]*vel[i][2];
 
         tot_mass += mass[i];
     }
@@ -103,9 +104,9 @@ void move_to_com(double **pos, double **vel, double *mass, size_t N) {
         pos[i][1]-=pos_com[1];
         pos[i][2]-=pos_com[2];
 
-        vel_com[i][0] -= vel_com[0];
-        vel_com[i][1] -= vel_com[1];
-        vel_com[i][2] -= vel_com[2];
+        vel[i][0] -= vel_com[0];
+        vel[i][1] -= vel_com[1];
+        vel[i][2] -= vel_com[2];
     }
 }
 

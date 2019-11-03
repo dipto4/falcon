@@ -3,7 +3,7 @@
 #include<assert.h>
 #include "globals.h"
 #include "force.h"
-#include "integrator.h"
+#include "io.h"
 
 void update_timestep(double acc_i[3], double jerk_i[3], double a2[3], double a3[3], double *step, size_t i) {
     double mod_f, mod_f1, mod_f2, mod_f3;
@@ -135,7 +135,13 @@ size_t integrate(double **pos, double **vel, double **acc, double **jerk,double 
 
         nsteps++;
 #ifdef DEBUG
+        double kin, pot, energy_current;
         printf("Integration step completed. Current time: %f \n",*t);
+        kin = get_kinetic_energy(vel,mass,N);
+        pot = get_potential_energy(pos, mass, N);
+        energy_current = kin - pot;  
+        printf("kinetic energy = %f, potential_energy = %f, total energy = %f\n",kin,pot,energy_current);
+
 #endif
     } while(*t < t_end);
 

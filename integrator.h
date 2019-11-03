@@ -1,5 +1,6 @@
 #ifndef INTEGRATOR_H
 #define INTEGRATOR_H
+#include<stddef.h>
 #include "globals.h"
 
 

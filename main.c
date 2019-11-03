@@ -20,7 +20,9 @@ void main(int argc, char **argv) {
     double out_frequency;
     double mass_scale, pos_scale, vel_scale, t_scale;
     size_t integrator_steps;
-    
+    double e0, kin, pot;
+    double energy_current;
+
     assert(argc==4);
     
     const char* filename = argv[1];
@@ -123,6 +125,12 @@ void main(int argc, char **argv) {
 
     write_output_to_hdf5(nsteps,mass,pos,vel,acc,jerk,N,time); 
     
+    kin = get_kinetic_energy(vel,mass,N);
+    pot = get_potential_energy(pos, mass, N);
+    e0 = kin - pot;
+
+
+    printf("kinetic energy = %f, potential_energy = %f, total energy = %f\n\n",kin,pot,e0);   
     // start the simulation 
     printf("starting integration...");
     
@@ -130,6 +138,16 @@ void main(int argc, char **argv) {
 
         integrator_steps = integrate(pos,vel,acc,jerk,mass,step,t_last,&time,(t+out_frequency),N);
         nsteps++;
+     
+        kin = get_kinetic_energy(vel,mass,N);
+        pot = get_potential_energy(pos, mass, N);
+        energy_current = kin - pot;
+        
+        printf("steps taken by integrator: %d\n",integrator_steps);
+        printf("time = %f\n",time);
+        printf("kinetic energy = %f, potential_energy = %f, total energy = %f\n",kin,pot,energy_current);
+        printf("relative energy error = %f\n\n", fabs(e0-energy_current)/e0);
+
         write_output_to_hdf5(nsteps,mass,pos,vel,acc,jerk,N,time); 
     }
     printf("Integration completed!\n");

@@ -22,6 +22,11 @@
 void calculate_potential(double **pos, double *mass, size_t N, double pot[NMAX]) {
     size_t i,j;
 
+    for(i = 0; i < N;i++) {
+        pot[i] = 0;
+    }
+
+
     for(i=0;i<N;i++) {
         for(j=0;j<N;j++) {
             if(i != j) {

@@ -1,3 +1,4 @@
+#include<stdio.h>
 #include<math.h>
 #include<assert.h>
 #include "globals.h"
@@ -133,7 +134,9 @@ size_t integrate(double **pos, double **vel, double **acc, double **jerk,double 
         t_last[i] = *t;
 
         nsteps++;
-
+#ifdef DEBUG
+        printf("Integration step completed. Current time: %f \n",*t);
+#endif
     } while(*t < t_end);
 
     return nsteps;

@@ -19,5 +19,6 @@
 #define ETA 0.02
 #define ETA_INI 0.01
 #define NMAX 1024
+#define QVIR 0.50
 
 #endif

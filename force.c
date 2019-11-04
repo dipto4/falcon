@@ -74,7 +74,7 @@ void calculate_acceleration_and_jerk(double **pos,double **vel, double *mass, si
                 double dist2 = dist*dist;
                 double dist3 = dist*dist*dist;
 
-                double mass_over_dist3 = -mass[j]/dist3;
+                double mass_over_dist3 = mass[j]/dist3;
 
                 // calculate F_ij
                 acc[i][0] += -mass_over_dist3*dx;
@@ -85,13 +85,12 @@ void calculate_acceleration_and_jerk(double **pos,double **vel, double *mass, si
                 double dvx = vel[i][0] - vel[j][0];
                 double dvy = vel[i][1] - vel[j][1];
                 double dvz = vel[i][2] - vel[j][2];
-                // a = R.V/|R|^2
-                double a = dx*dvx+dy*dvy+dz*dvz/dist2;
+                
+                double rrdot = (dx*dvx+dy*dvy+dz*dvz);
 
-
-                jerk[i][0] += -mass_over_dist3*dvx-3*a*acc[i][0];
-                jerk[i][1] += -mass_over_dist3*dvy-3*a*acc[i][1];
-                jerk[i][2] += -mass_over_dist3*dvz-3*a*acc[i][2];
+                jerk[i][0] += -mass[j]*(dvx/dist3 -3*rrdot*dx/(dist3*dist2));
+                jerk[i][1] += -mass[j]*(dvy/dist3 -3*rrdot*dy/(dist3*dist2));
+                jerk[i][2] += -mass[j]*(dvz/dist3 -3*rrdot*dz/(dist3*dist2));
 
             } else {
                 continue;
@@ -128,7 +127,7 @@ void calculate_acceleration_and_jerk_single(double **pos,double **vel, double *m
             double dist2 = dist*dist;
             double dist3 = dist*dist*dist;
 
-            double mass_over_dist3 = -mass[j]/dist3;
+            double mass_over_dist3 = mass[j]/dist3;
 
             // calculate F_ij
             acc_i[0] += -mass_over_dist3*dx;
@@ -139,13 +138,13 @@ void calculate_acceleration_and_jerk_single(double **pos,double **vel, double *m
             double dvx = vel[i][0] - vel[j][0];
             double dvy = vel[i][1] - vel[j][1];
             double dvz = vel[i][2] - vel[j][2];
-            // a = R.V/|R|^2
-            double a = dx*dvx+dy*dvy+dz*dvz/dist2;
+            
+            double rrdot = (dx*dvx+dy*dvy+dz*dvz);
+                
+            jerk_i[0] += -mass[j]*(dvx/dist3 - 3*rrdot*dx/(dist3*dist2));
+            jerk_i[1] += -mass[j]*(dvy/dist3 - 3*rrdot*dy/(dist3*dist2));
+            jerk_i[2] += -mass[j]*(dvz/dist3 - 3*rrdot*dz/(dist3*dist2));
 
-
-            jerk_i[0] += -mass_over_dist3*dvx-3*a*acc_i[0];
-            jerk_i[1] += -mass_over_dist3*dvy-3*a*acc_i[1];
-            jerk_i[2] += -mass_over_dist3*dvz-3*a*acc_i[2];
 
         } else {
             continue;

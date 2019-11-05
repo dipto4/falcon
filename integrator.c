@@ -1,6 +1,7 @@
 #include<stdio.h>
 #include<math.h>
 #include<assert.h>
+#include<stdlib.h>
 #include "globals.h"
 #include "force.h"
 #include "io.h"
@@ -25,44 +26,57 @@ void update_timestep(double acc_i[3], double jerk_i[3], double a2[3], double a3[
 }
 
 
-void predictor(double **pos, double **vel, double **acc, double **jerk, double t,size_t N, 
-        double temp_pos[NMAX][3], double temp_vel[NMAX][3], double *t_last) {
+void predictor(double **pos, double **vel, double **acc, double **jerk, double **snap, 
+        double t,size_t N, 
+        double **temp_pos, double **temp_vel, double *t_last) {
     int j;
     
+    //testing if snap works or not
+
+
+
     double dt;
     double dt2_over_2;
     double dt3_over_6;
-
+    double dt4_over_24;
     for(j = 0;j < N;j++) {
-        dt = t - t_last[j];
-        dt2_over_2 = dt*dt/2.0;
-        dt3_over_6 = dt*dt*dt/6.0;
+        snap[j][0] = 0;
+        snap[j][1] = 0;
+        snap[j][2] = 0;
         
-        temp_pos[j][0] = pos[j][0] + vel[j][0]*dt + acc[j][0]*dt2_over_2 + jerk[j][0]*dt3_over_6; 
-        temp_pos[j][1] = pos[j][1] + vel[j][1]*dt + acc[j][1]*dt2_over_2 + jerk[j][1]*dt3_over_6; 
-        temp_pos[j][2] = pos[j][2] + vel[j][2]*dt + acc[j][2]*dt2_over_2 + jerk[j][2]*dt3_over_6;
+        dt = t - t_last[j];
+        dt2_over_2 = dt*dt/2;
+        dt3_over_6 = dt*dt*dt/6;
+        dt4_over_24 = dt*dt*dt*dt/24;
+        
 
-        temp_vel[j][0] = vel[j][0] + acc[j][0]*dt + jerk[j][0]*dt2_over_2;
-        temp_vel[j][1] = vel[j][1] + acc[j][1]*dt + jerk[j][1]*dt2_over_2;
-        temp_vel[j][2] = vel[j][2] + acc[j][2]*dt + jerk[j][2]*dt2_over_2;
+        temp_pos[j][0] = pos[j][0] + vel[j][0]*dt + acc[j][0]*dt2_over_2 + jerk[j][0]*dt3_over_6 + snap[j][0]*dt4_over_24; 
+        temp_pos[j][1] = pos[j][1] + vel[j][1]*dt + acc[j][1]*dt2_over_2 + jerk[j][1]*dt3_over_6 + snap[j][1]*dt4_over_24; 
+        temp_pos[j][2] = pos[j][2] + vel[j][2]*dt + acc[j][2]*dt2_over_2 + jerk[j][2]*dt3_over_6 + snap[j][2]*dt4_over_24;
+
+        temp_vel[j][0] = vel[j][0] + acc[j][0]*dt + jerk[j][0]*dt2_over_2 + snap[j][0]*dt3_over_6;
+        temp_vel[j][1] = vel[j][1] + acc[j][1]*dt + jerk[j][1]*dt2_over_2 + snap[j][1]*dt3_over_6;
+        temp_vel[j][2] = vel[j][2] + acc[j][2]*dt + jerk[j][2]*dt2_over_2 + snap[j][2]*dt3_over_6;
     }
 }
 
-void corrector(double **pos, double **vel, double **acc, double **jerk, double *step, size_t i,
-        double temp_pos[NMAX][3], double temp_vel[NMAX][3], double acc_i[3], double jerk_i[3]) {
+//adding snap calculation to corrector
+void corrector(double **pos, double **vel, double **acc, double **jerk, double **snap, 
+        double *step, size_t i,
+        double **temp_pos, double **temp_vel, double acc_i[3], double jerk_i[3]) {
 
     double a2[3], a3[3];
     double step_i2 = step[i] * step[i];
     double step_i3 = step[i] * step[i] * step[i];
 
     //find the second and third derivatives of acceleration from prediced and original positions
-    a2[0] = (-6*(acc[i][0]-acc_i[0]) - step[i]*(4*jerk[i][0] + 2*jerk_i[0]))/(step_i2);
-    a2[1] = (-6*(acc[i][1]-acc_i[1]) - step[i]*(4*jerk[i][1] + 2*jerk_i[1]))/(step_i2);
-    a2[2] = (-6*(acc[i][2]-acc_i[2]) - step[i]*(4*jerk[i][2] + 2*jerk_i[2]))/(step_i2);
+    a2[0] = 2*(-3*(acc[i][0]-acc_i[0]) - step[i]*(2*jerk[i][0] + 1*jerk_i[0]))/(step_i2);
+    a2[1] = 2*(-3*(acc[i][1]-acc_i[1]) - step[i]*(2*jerk[i][1] + 1*jerk_i[1]))/(step_i2);
+    a2[2] = 2*(-3*(acc[i][2]-acc_i[2]) - step[i]*(2*jerk[i][2] + 1*jerk_i[2]))/(step_i2);
     
-    a3[0] = (12*(acc[i][0]-acc_i[0]) + 6*step[i]*(jerk[i][0] + jerk_i[0]))/(step_i3);
-    a3[1] = (12*(acc[i][1]-acc_i[1]) + 6*step[i]*(jerk[i][1] + jerk_i[1]))/(step_i3);
-    a3[2] = (12*(acc[i][2]-acc_i[2]) + 6*step[i]*(jerk[i][2] + jerk_i[2]))/(step_i3);
+    a3[0] = 6*(2*(acc[i][0]-acc_i[0]) + 1*step[i]*(jerk[i][0] + jerk_i[0]))/(step_i3);
+    a3[1] = 6*(2*(acc[i][1]-acc_i[1]) + 1*step[i]*(jerk[i][1] + jerk_i[1]))/(step_i3);
+    a3[2] = 6*(2*(acc[i][2]-acc_i[2]) + 1*step[i]*(jerk[i][2] + jerk_i[2]))/(step_i3);
 
 
     //correct the predicted positions for particle i
@@ -83,23 +97,38 @@ void corrector(double **pos, double **vel, double **acc, double **jerk, double *
     jerk[i][0] = jerk_i[0];
     jerk[i][1] = jerk_i[1];
     jerk[i][2] = jerk_i[2];
+    
+    snap[i][0] = a2[0] + step[i]*a3[0];
+    snap[i][1] = a2[1] + step[i]*a3[1];
+    snap[i][2] = a2[2] + step[i]*a3[2];
 
     update_timestep(acc_i,jerk_i,a2,a3,step,i);
 }
 
 
 
-size_t integrate(double **pos, double **vel, double **acc, double **jerk,double *mass, 
+size_t integrate(double **pos, double **vel, double **acc, double **jerk, double **snap,
+        double *mass, 
         double *step, double* t_last, double *t, double t_end, 
         size_t N) {
     
-    double temp_pos[NMAX][3], temp_vel[NMAX][3], acc_i[3], jerk_i[3];
+    double **temp_pos, **temp_vel, acc_i[3], jerk_i[3];
     
+
     int i, j,i_min;
     size_t nsteps;
     double t_min;
-
+    double momentum;
+    int row;
     assert(N < NMAX);
+    
+    temp_pos = (double **) malloc(N*sizeof(double*));
+    temp_vel = (double **) malloc(N*sizeof(double*));
+    
+    for(row = 0; row < N ; row++) {
+        temp_pos[row] = (double *) malloc(3*sizeof(double));
+        temp_vel[row] = (double *) malloc(3*sizeof(double));
+    }
 
     nsteps = 0;
     do {
@@ -123,14 +152,25 @@ size_t integrate(double **pos, double **vel, double **acc, double **jerk,double 
         // loop over all particles to predict their new positions
         
         // O(N) steps
-        predictor(pos, vel, acc, jerk, *t, N, temp_pos, temp_vel, t_last);
-
+        predictor(pos, vel, acc, jerk, snap,*t, N, temp_pos, temp_vel, t_last);
+        
         // O(N) steps
-        calculate_acceleration_and_jerk_single(pos, vel, mass, N, i, acc_i, jerk_i);
+        calculate_acceleration_and_jerk_single(temp_pos, temp_vel, mass, N, i, acc_i, jerk_i);
 
         // O(1) steps
-        corrector(pos, vel, acc, jerk, step, i,temp_pos, temp_vel, acc_i, jerk_i);
+        corrector(pos, vel, acc, jerk, snap, step, i,temp_pos, temp_vel, acc_i, jerk_i);
+        
+        /*//PECE
+        calculate_acceleration_and_jerk_single(temp_pos, temp_vel, mass, N, i, acc_i, jerk_i);
+        
+        acc[i][0] = acc_i[0];
+        acc[i][1] = acc_i[1];
+        acc[i][2] = acc_i[2];
 
+        jerk[i][0] = jerk_i[0];
+        jerk[i][1] = jerk_i[1];
+        jerk[i][2] = jerk_i[2];
+        */
         t_last[i] = *t;
 
         nsteps++;
@@ -140,8 +180,25 @@ size_t integrate(double **pos, double **vel, double **acc, double **jerk,double 
         kin = get_kinetic_energy(vel,mass,N);
         pot = get_potential_energy(pos, mass, N);
         energy_current = kin - pot;  
-        printf("kinetic energy = %f, potential_energy = %f, total energy = %f\n",kin,pot,energy_current);
+        printf("kinetic energy = %21.16f, potential_energy = %21.16f, total energy = %21.16f\n",kin,pot,energy_current);
 
+//check conservation of momentum
+        /*momentum = 0;
+        for(int k = 0; k < N; k++) {
+            momentum += mass[k]*sqrt(vel[k][0]*vel[k][0] + vel[k][1]*vel[k][1] + vel[k][2]*vel[k][2]);
+        }
+        
+        printf("momentum = %18.12f\n", momentum);
+        */
+
+        //print positions of particle for plotting
+
+        FILE *pos_file;
+
+        pos_file = fopen("pos","a");
+        fprintf(pos_file,"%18.12f %18.12f %18.12f  %18.12f  %18.12f  %18.12f \n", pos[0][0], pos[0][1], pos[0][2], pos[1][0], pos[1][1], pos[1][2]);
+        
+        fclose(pos_file);
 #endif
     } while(*t < t_end);
 

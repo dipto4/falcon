@@ -1,4 +1,5 @@
 #include<math.h>
+#include<stdio.h>
 #include "globals.h"
 #include "force.h"
 #include "io.h"
@@ -139,7 +140,18 @@ void initialize(double **pos, double **vel, double **acc, double **jerk,
         f_mod = acc_i[0] * acc_i[0] + acc_i[1] * acc_i[1] + acc_i[2] * acc_i[2];
         f1_mod = jerk_i[0] * jerk_i[0] + jerk_i[1] * jerk_i[1] + jerk_i[2] * jerk_i[2];
         
+
+#ifdef DEBUG
+        double step_i = ETA_INI*sqrt(f_mod/f1_mod);
+        printf("step_i %0.16e for i = %d", step_i, i);
+#endif
         step[i] = ETA_INI*sqrt(f_mod/f1_mod); 
+  
+        if(f1_mod < TINY) {
+            step[i] = 1e-5;
+        }
+   
+    
     }
     
 }

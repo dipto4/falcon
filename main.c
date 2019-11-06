@@ -19,7 +19,7 @@ void main(int argc, char **argv) {
     double final_t;
     double out_frequency;
     double mass_scale, pos_scale, vel_scale, t_scale;
-    size_t integrator_steps;
+    size_t integrator_steps = 0;
     double e0, kin, pot;
     double energy_current;
 
@@ -27,7 +27,7 @@ void main(int argc, char **argv) {
     
     const char* filename = argv[1];
     final_t = atof(argv[2]);
-    out_frequency = atof(argc[3]);
+    out_frequency = atof(argv[3]);
 
     /* a cool code needs a cooler logo*/ 
     printf("    *                                                                                                                            \n");
@@ -81,6 +81,8 @@ void main(int argc, char **argv) {
         
     */
     N = get_N_from_file(filename);
+    printf("N = %d\n",N);
+    
     assert(N > 1);
     assert(N<NMAX);
     
@@ -115,7 +117,8 @@ void main(int argc, char **argv) {
     printf("intializing the system...\n");
     move_to_com(pos,vel,mass,N);
     
-    scale(pos,vel,mass,N,&mass_scale, &pos_scale, &vel_scale, &t_scale);
+    //skip scaling for now
+    //scale(pos,vel,mass,N,&mass_scale, &pos_scale, &vel_scale, &t_scale);
 
     printf("mass_scale = %f , pos_scale = %f, vel_scale= %f, t_scale=%f \n", mass_scale, pos_scale, vel_scale, t_scale);
 
@@ -136,7 +139,7 @@ void main(int argc, char **argv) {
     
     while(time <= final_t) {
 
-        integrator_steps = integrate(pos,vel,acc,jerk,mass,step,t_last,&time,(t+out_frequency),N);
+        integrator_steps += integrate(pos,vel,acc,jerk,mass,step,t_last,&time,(time+out_frequency),N);
         nsteps++;
      
         kin = get_kinetic_energy(vel,mass,N);
@@ -145,10 +148,12 @@ void main(int argc, char **argv) {
         
         printf("steps taken by integrator: %d\n",integrator_steps);
         printf("time = %f\n",time);
-        printf("kinetic energy = %f, potential_energy = %f, total energy = %f\n",kin,pot,energy_current);
-        printf("relative energy error = %f\n\n", fabs(e0-energy_current)/e0);
+        printf("kinetic energy = %18.12f, potential_energy = %18.12f, total energy = %18.12f\n",kin,pot,energy_current);
+        printf("relative energy error = %.16e\n\n", fabs(e0-energy_current)/e0);
 
         write_output_to_hdf5(nsteps,mass,pos,vel,acc,jerk,N,time); 
     }
+    printf("Total steps taken %d\n",integrator_steps);
     printf("Integration completed!\n");
+    free(pos); free(vel); free(mass); free(acc); free(jerk);
 }

@@ -20,6 +20,7 @@ void main(int argc, char **argv) {
     double out_frequency;
     double mass_scale, pos_scale, vel_scale, t_scale;
     size_t integrator_steps = 0;
+    size_t total_steps = 0;
     double e0, kin, pot;
     double energy_current;
 
@@ -139,9 +140,11 @@ void main(int argc, char **argv) {
     
     while(time <= final_t) {
 
-        integrator_steps += integrate(pos,vel,acc,jerk,mass,step,t_last,&time,(time+out_frequency),N);
+        integrator_steps = integrate(pos,vel,acc,jerk,mass,step,t_last,&time,(time+out_frequency),N);
+        total_steps += integrator_steps;
+        
         nsteps++;
-     
+            
         kin = get_kinetic_energy(vel,mass,N);
         pot = get_potential_energy(pos, mass, N);
         energy_current = kin - pot;
@@ -153,7 +156,7 @@ void main(int argc, char **argv) {
 
         write_output_to_hdf5(nsteps,mass,pos,vel,acc,jerk,N,time); 
     }
-    printf("Total steps taken %d\n",integrator_steps);
+    printf("Total steps taken %lu\n",total_steps);
     printf("Integration completed!\n");
     free(pos); free(vel); free(mass); free(acc); free(jerk);
 }

@@ -1,3 +1,4 @@
+from __future__ import print_function
 import numpy as np
 import os
 from optparse import OptionParser
@@ -29,7 +30,7 @@ class Falcon(object):
 
         # default values
 
-        #self.N = 0   --> moved to the create_particles method
+        self.N = 0
         self.eta = 0.02
         self.out_n = 100
         self.final_t = 1
@@ -46,13 +47,28 @@ class Falcon(object):
             __particles__[i] = Particle()
 
         self.Particles = __particles__
-
+        self.N = N
         if(__particles__.size == N):
             __error__ = 0
         else:
             __error__ = 1
 
         return __error__
+
+
+    def __set_falcon_values__(self):
+
+        if(self.N == None or self.N < 2):
+            print("Error in the number of particles! Check...")
+
+            # add error handler
+
+        else:
+            for i in range(0,self.N):
+                if(self.Particles[i].isNone == True):
+                    print("Error in initialization of particle {}".format(i))
+
+                    # add error handler
 
 
 

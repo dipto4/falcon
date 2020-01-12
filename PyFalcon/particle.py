@@ -15,5 +15,14 @@ class Particle(object):
 
         self.m = None
 
+    def isNone(self):
+        if(self.x == None or self.y == None or self.z == None
+                or self.vx == None or self.vy == None or self.vz == None
+                or self.m == None):
+            return True
+        else:
+            return False
+
+        pass
 
 

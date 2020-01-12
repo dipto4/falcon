@@ -71,5 +71,26 @@ class Falcon(object):
                     # add error handler
 
 
+        # convert to ctypes
+
+        P_N = c_int(self.N)
+        P_eta = c_double(self.eta)
+        P_out_n = c_int(self.out_n)
+        P_final_t = c_double(self.final_t)
 
 
+        # now convert the particles
+
+        P_x = (c_double * self.N)(*[self.Particles[i].x for i in range(0,self.N)])
+        P_y = (c_double * self.N)(*[self.Particles[i].y for i in range(0,self.N)])
+        P_z = (c_double * self.N)(*[self.Particles[i].z for i in range(0,self.N)])
+        P_vx = (c_double * self.N)(*[self.Particles[i].vx for i in range(0,self.N)])
+        P_vy = (c_double * self.N)(*[self.Particles[i].vy for i in range(0,self.N)])
+        P_vz = (c_double * self.N)(*[self.Particles[i].vz for i in range(0,self.N)])
+        P_m = (c_double * self.N)(*[self.Particles[i].m for i in range(0,self.N)])
+
+
+        # now pass them to the code via the C interface
+
+        self.library.__set_input_params__(P_N,P_eta,P_out_n,P_final_t)
+        self.library.__set_particle_params__(P_x,P_y,P_z,P_vx,P_vy,P_vz,P_m)

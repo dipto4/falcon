@@ -2,7 +2,7 @@ from __future__ import print_function
 import numpy as np
 import os
 from optparse import OptionParser
-from ctypes import cdll, c_int, c_double, byref, c_bool
+from ctypes import *
 from particle import Particle
 
 class Falcon(object):
@@ -91,6 +91,26 @@ class Falcon(object):
 
 
         # now pass them to the code via the C interface
+
+        # C interface returns pointers of type input_params and particle_params
+
+        class __input_params__(Structure):
+            _fields_=[("N",c_int),
+                    ("eta",c_double),
+                    ("out_n",c_int),
+                    ("final_t",c_double)]
+
+
+        class __particle_params__(Structure):
+            _fields_=[("x",POINTER(c_double)),
+                    ("y",POINTER(c_double)),
+                    ("z",POINTER(c_double)),
+                    ("vx",POINTER(c_double)),
+                    ("vy",POINTER(c_double)),
+                    ("vz",POINTER(c_double)),
+                    ("m",POINTER(c_double))]
+
+
 
         self.library.__set_input_params__(P_N,P_eta,P_out_n,P_final_t)
         self.library.__set_particle_params__(P_x,P_y,P_z,P_vx,P_vy,P_vz,P_m)

@@ -6,12 +6,13 @@ from ctypes import *
 from particle import Particle
 
 class Falcon(object):
-    __instance__ == None
+    __instance__ = None
 
     def __init__(self):
         Falcon.__instance__ = self
 
-        self.library = cdll.LoadLibrary('./libfalcon.so')
+        #self.library = cdll.LoadLibrary('./libfalcon.so')
+        self.library = cdll.LoadLibrary('./libtest.so')
 
         # input parameters
         # N = number of particles
@@ -37,6 +38,8 @@ class Falcon(object):
 
         self.Particles = None
 
+        self.__ctypes_input_params__ = None
+        self.__ctypes_particle_params__ = None
 
     def create_particles(self, N):
         __error__ = 0
@@ -67,7 +70,7 @@ class Falcon(object):
             for i in range(0,self.N):
                 if(self.Particles[i].isNone == True):
                     print("Error in initialization of particle {}".format(i))
-
+                    break
                     # add error handler
 
 
@@ -88,6 +91,14 @@ class Falcon(object):
         P_vy = (c_double * self.N)(*[self.Particles[i].vy for i in range(0,self.N)])
         P_vz = (c_double * self.N)(*[self.Particles[i].vz for i in range(0,self.N)])
         P_m = (c_double * self.N)(*[self.Particles[i].m for i in range(0,self.N)])
+
+        cast(P_x,POINTER(c_double))
+        cast(P_y,POINTER(c_double))
+        cast(P_z,POINTER(c_double))
+        cast(P_vx,POINTER(c_double))
+        cast(P_vy,POINTER(c_double))
+        cast(P_vz,POINTER(c_double))
+        cast(P_m,POINTER(c_double))
 
 
         # now pass them to the code via the C interface
@@ -110,7 +121,5 @@ class Falcon(object):
                     ("vz",POINTER(c_double)),
                     ("m",POINTER(c_double))]
 
-
-
-        self.library.__set_input_params__(P_N,P_eta,P_out_n,P_final_t)
-        self.library.__set_particle_params__(P_x,P_y,P_z,P_vx,P_vy,P_vz,P_m)
+        self.__ctypes_input_parameters__ = __input_params__(self.N,self.eta,self.out_n,self.final_t)
+        self.__ctypes_particle_parameters__ = __particle_params__(P_x,P_y,P_z,P_vx,P_vy,P_vz,P_m)

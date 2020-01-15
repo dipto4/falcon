@@ -11,8 +11,8 @@ class Falcon(object):
     def __init__(self):
         Falcon.__instance__ = self
 
-        #self.library = cdll.LoadLibrary('./libfalcon.so')
-        self.library = cdll.LoadLibrary('./libtest.so')
+        self.library = cdll.LoadLibrary('./libfalcon.so')
+        #self.library = cdll.LoadLibrary('./libtest.so')
 
         # input parameters
         # N = number of particles
@@ -33,7 +33,7 @@ class Falcon(object):
 
         self.N = 0
         self.eta = 0.02
-        self.out_n = 100
+        self.dt = 0.5
         self.final_t = 1
 
         self.Particles = None
@@ -76,13 +76,6 @@ class Falcon(object):
 
         # convert to ctypes
 
-        P_N = c_int(self.N)
-        P_eta = c_double(self.eta)
-        P_out_n = c_int(self.out_n)
-        P_final_t = c_double(self.final_t)
-
-
-        # now convert the particles
 
         P_x = (c_double * self.N)(*[self.Particles[i].x for i in range(0,self.N)])
         P_y = (c_double * self.N)(*[self.Particles[i].y for i in range(0,self.N)])
@@ -108,7 +101,7 @@ class Falcon(object):
         class __input_params__(Structure):
             _fields_=[("N",c_int),
                     ("eta",c_double),
-                    ("out_n",c_int),
+                    ("out_n",c_double),
                     ("final_t",c_double)]
 
 
@@ -121,5 +114,12 @@ class Falcon(object):
                     ("vz",POINTER(c_double)),
                     ("m",POINTER(c_double))]
 
-        self.__ctypes_input_parameters__ = __input_params__(self.N,self.eta,self.out_n,self.final_t)
-        self.__ctypes_particle_parameters__ = __particle_params__(P_x,P_y,P_z,P_vx,P_vy,P_vz,P_m)
+        self.__ctypes_input_params__ = __input_params__(self.N,self.eta,self.dt,self.final_t)
+        self.__ctypes_particle_params__ = __particle_params__(P_x,P_y,P_z,P_vx,P_vy,P_vz,P_m)
+
+
+    def integrate(self):
+        self.__set_falcon_values__()
+        print("starting integration...")
+        self.library.start(byref(self.__ctypes_input_params__),byref(self.__ctypes_particle_params__))
+

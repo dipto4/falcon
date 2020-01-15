@@ -4,7 +4,7 @@
 #include<math.h>
 #include<assert.h>
 #include<string.h>
-#include "interface.h"
+#include "common.h"
 #include "io.h"
 #include "initialize.h"
 #include "integrator.h"
@@ -169,7 +169,7 @@ void start(input_params* in, particle_params* pa) {
     
     while(time <= final_t) {
 
-        integrator_steps = integrate(pos,vel,acc,jerk,mass,step,t_last,&time,(time+out_frequency),N);
+        integrator_steps = integrate(pos,vel,acc,jerk,mass,step,t_last,&time,(time+out_frequency),N,eta);
         total_steps += integrator_steps;
         
         nsteps++;

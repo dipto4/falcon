@@ -32,10 +32,13 @@ void start(input_params* in, particle_params* pa) {
     // input parameters from file
     N = in->N;
     eta = in->eta;
-    out_frequency = in->out_n;
+    out_frequency = in->dt;
     final_t = in->final_t;
     
-    
+    printf("N = %d\n",N); 
+    printf("eta = %f\n",eta); 
+    printf("out_fre = %d\n",out_frequency); 
+    printf("final_t = %f\n",final_t); 
     
     
     
@@ -96,8 +99,8 @@ void start(input_params* in, particle_params* pa) {
        get initial jerk, acc, timestep -> print scaling constants -> start integration
         
     */
-    N = get_N_from_file(filename);
-    printf("N = %d\n",N);
+    //N = get_N_from_file(filename);
+    //printf("N = %d\n",N);
     
     assert(N > 1);
     assert(N<NMAX);
@@ -152,7 +155,7 @@ void start(input_params* in, particle_params* pa) {
 
     printf("mass_scale = %f , pos_scale = %f, vel_scale= %f, t_scale=%f \n", mass_scale, pos_scale, vel_scale, t_scale);
 
-    initialize(pos,vel,acc,jerk,step,t_last,mass,N);
+    initialize(pos,vel,acc,jerk,step,t_last,mass,N,eta);
     
     // dump the initial conditions to an output file
 

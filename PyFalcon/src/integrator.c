@@ -6,7 +6,7 @@
 #include "force.h"
 #include "io.h"
 
-void update_timestep(double acc_i[3], double jerk_i[3], double a2[3], double a3[3], double *step, size_t i) {
+void update_timestep(double acc_i[3], double jerk_i[3], double a2[3], double a3[3], double *step, size_t i,double eta) {
     double mod_f, mod_f1, mod_f2, mod_f3;
     double temp_t_i;
 
@@ -16,7 +16,8 @@ void update_timestep(double acc_i[3], double jerk_i[3], double a2[3], double a3[
     mod_f3 = sqrt(a3[0] * a3[0] + a3[1] * a3[1] + a3[2] * a3[2]);
 
     //find an optimal timestep
-    temp_t_i = sqrt(ETA* ((mod_f * mod_f2) + mod_f1*mod_f1 ) / (mod_f1*mod_f3 + mod_f2*mod_f2));
+    //changes: PyFalcon
+    temp_t_i = sqrt(eta* ((mod_f * mod_f2) + mod_f1*mod_f1 ) / (mod_f1*mod_f3 + mod_f2*mod_f2));
     
     //check if timestep is not zero
     assert(temp_t_i != 0);
@@ -55,7 +56,7 @@ void predictor(double **pos, double **vel, double **acc, double **jerk,
 //adding snap calculation to corrector
 void corrector(double **pos, double **vel, double **acc, double **jerk, 
         double *step, size_t i,
-        double **temp_pos, double **temp_vel, double acc_i[3], double jerk_i[3]) {
+        double **temp_pos, double **temp_vel, double acc_i[3], double jerk_i[3], double eta) {
     
     double a2[3], a3[3];
     double step_i2 = step[i] * step[i];
@@ -90,7 +91,7 @@ void corrector(double **pos, double **vel, double **acc, double **jerk,
     jerk[i][1] = jerk_i[1];
     jerk[i][2] = jerk_i[2];
 
-    update_timestep(acc_i,jerk_i,a2,a3,step,i);
+    update_timestep(acc_i,jerk_i,a2,a3,step,i,eta);
 }
 
 
@@ -98,7 +99,7 @@ void corrector(double **pos, double **vel, double **acc, double **jerk,
 size_t integrate(double **pos, double **vel, double **acc, double **jerk, 
         double *mass, 
         double *step, double* t_last, double *t, double t_end, 
-        size_t N) {
+        size_t N, double eta) {
     
     double **temp_pos, **temp_vel, acc_i[3], jerk_i[3];
     
@@ -146,7 +147,7 @@ size_t integrate(double **pos, double **vel, double **acc, double **jerk,
         calculate_acceleration_and_jerk_single(temp_pos, temp_vel, mass, N, i, acc_i, jerk_i);
 
         // O(1) steps
-        corrector(pos, vel, acc, jerk, step, i,temp_pos, temp_vel, acc_i, jerk_i);
+        corrector(pos, vel, acc, jerk, step, i,temp_pos, temp_vel, acc_i, jerk_i, eta);
         
         t_last[i] = *t;
 

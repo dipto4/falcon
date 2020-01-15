@@ -113,11 +113,11 @@ void move_to_com(double **pos, double **vel, double *mass, size_t N) {
 
 
 void initialize(double **pos, double **vel, double **acc, double **jerk, 
-        double *step, double *t_last, double *mass, size_t N) {
+        double *step, double *t_last, double *mass, size_t N, double eta) {
     double acc_i[3], jerk_i[3];
     double f_mod, f1_mod;
     int i;
-    
+    double eta_ini = 0.1*eta;    
     // initialize t_last and step
     for(i = 0; i<N;i++) {
         t_last[i] = 0.0;
@@ -142,10 +142,10 @@ void initialize(double **pos, double **vel, double **acc, double **jerk,
         
 
 #ifdef DEBUG
-        double step_i = ETA_INI*sqrt(f_mod/f1_mod);
+        double step_i = eta_ini*sqrt(f_mod/f1_mod);
         printf("step_i %0.16e for i = %d", step_i, i);
 #endif
-        step[i] = ETA_INI*sqrt(f_mod/f1_mod); 
+        step[i] = eta_ini*sqrt(f_mod/f1_mod); 
   
         if(f1_mod < TINY) {
             step[i] = 1e-6;
